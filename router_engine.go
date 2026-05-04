@@ -13,6 +13,7 @@ import (
 	"github.com/luraproject/lura/v2/core"
 	luragin "github.com/luraproject/lura/v2/router/gin"
 	"github.com/luraproject/lura/v2/transport/http/server"
+	ws "github.com/tlmanz/krakend-ws"
 )
 
 // NewEngine creates a new gin engine with some default values and a secure middleware
@@ -44,6 +45,12 @@ func NewEngine(cfg config.ServiceConfig, opt luragin.EngineOptions) *gin.Engine 
 	lua.Register(opt.Logger, cfg.ExtraConfig, engine)
 
 	botdetector.Register(cfg, opt.Logger, engine)
+
+	if err := ws.Register(engine, cfg, opt.Logger); err != nil && err != ws.ErrNoConfig {
+		opt.Logger.Warning(logPrefix+"[WebSocket]", err)
+	} else if err == nil {
+		opt.Logger.Debug(logPrefix + "[WebSocket] Successfully loaded module")
+	}
 
 	return engine
 }
